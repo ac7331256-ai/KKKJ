@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>لوحة تحكم المتجر</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { font-family: 'Cairo', sans-serif; background: #f8f9fa; padding: 0; margin: 0; padding-bottom: 80px; }
+        
+        /* شاشة القفل */
+        #login-screen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #2f3542; z-index: 9999; display: flex; flex-direction: column;
+            align-items: center; justify-content: center; color: white;
+        }
+        #login-input { width: 200px; text-align: center; font-size: 20px; letter-spacing: 5px; }
+
+        .admin-header {
+            background: #ff9900; color: white; padding: 15px; text-align: center;
+            font-weight: bold; font-size: 18px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            position: sticky; top: 0; z-index: 100;
+        }
+
+        .container { max-width: 600px; margin: 0 auto; padding: 15px; }
+
+        input, textarea, select, button { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 12px; font-family: 'Cairo', sans-serif; box-sizing: border-box; outline: none; }
+        textarea { resize: vertical; min-height: 100px; }
+        
+        button.action-btn { background: #ff9900; color: white; border: none; font-weight: bold; cursor: pointer; transition: 0.3s; box-shadow: 0 4px 10px rgba(255, 153, 0, 0.2); }
+        button.action-btn:active { transform: scale(0.98); }
+        
+        button.delete-btn { background: #ff4757; color: white; width: auto; padding: 5px 15px; font-size: 12px; border-radius: 20px; }
+        
+        .status { text-align: center; margin-top: 5px; font-size: 14px; font-weight: bold; }
+        
+        .order-item { background: white; border: 1px solid #eee; padding: 15px; margin-bottom: 15px; border-radius: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+        .order-header { display: flex; justify-content: space-between; font-weight: bold; margin-bottom: 10px; color: #2f3542; border-bottom: 1px solid #eee; padding-bottom: 5px; }
+        .order-details { font-size: 14px; color: #57606f; line-height: 1.7; }
+
+        .tab-content { display: none; animation: fadeIn 0.3s; }
+        .tab-content.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .bottom-nav {
+            position: fixed; bottom: 0; left: 0; width: 100%; height: 70px;
+            background: white; border-top: 1px solid #eee; display: flex;
+            justify-content: space-around; align-items: center; z-index: 1000;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+        }
+
+        .nav-btn {
+            background: none; border: none; color: #a4b0be; font-size: 11px;
+            display: flex; flex-direction: column; align-items: center; gap: 5px; margin: 0; width: auto;
+        }
+        .nav-btn i { font-size: 22px; margin-bottom: 2px; transition: 0.3s; }
+        .nav-btn.active { color: #ff9900; }
+        .nav-btn.active i { transform: translateY(-3px); }
+
+        .section-label {
+            font-size: 16px; font-weight: bold; color: #2f3542; margin-bottom: 15px; display: block;
+            border-right: 4px solid #ff9900; padding-right: 10px; background: #fff; padding: 10px; border-radius: 5px;
+        }
+
+        /* تنسيق قائمة البنرات والمنتجات */
+        .banner-list-item {
+            display: flex; justify-content: space-between; align-items: center;
+            background: #fff; padding: 10px; margin-bottom: 10px; border-radius: 8px; border: 1px solid #eee;
+        }
+        .banner-preview { width: 50px; height: 50px; object-fit: cover; border-radius: 4px; }
+        
+        /* أزرار خيارات الواجهة */
+        .design-option-btn {
+            background: white; border: 1px solid #eee; padding: 20px; text-align: center;
+            border-radius: 15px; cursor: pointer; transition: 0.2s; margin-bottom: 15px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05); display: block; width: 100%;
+        }
+        .design-option-btn:hover { background: #fffbf5; border-color: #ff9900; }
+        .design-option-btn i { font-size: 30px; color: #ff9900; margin-bottom: 10px; display: block; }
+        .design-option-btn span { font-weight: bold; font-size: 16px; color: #333; }
+    </style>
+</head>
+<body>
+
+    <div id="login-screen">
+        <i class="fa-solid fa-lock" style="font-size: 50px; margin-bottom: 20px; color: #ff9900;"></i>
+        <h3>أدخل رمز الدخول</h3>
+        <input type="password" id="login-input" placeholder="****">
+        <button class="action-btn" onclick="checkLogin()" style="width: 200px; margin-top: 20px;">دخول</button>
+        <p id="login-error" style="color: #ff4757; display: none;">الرمز غير صحيح!</p>
+    </div>
+
+    <div class="admin-header">لوحة الإدارة</div>
+
+    <div class="container" id="main-container" style="display: none;">
+        
+        <div id="tab-orders" class="tab-content active">
+            <span class="section-label">📦 الطلبات الواردة</span>
+            <div id="orders-list">
+                <p style="text-align:center; color:#777; margin-top:50px;">جاري تحميل الطلبات...</p>
+            </div>
+        </div>
+
+        <div id="tab-add-product" class="tab-content">
+            <span class="section-label">🛍️ إضافة منتج جديد</span>
+            <div style="background:white; padding:20px; border-radius:15px; box-shadow:0 2px 8px rgba(0,0,0,0.05);">
+                <input type="text" id="p-name" placeholder="اسم المنتج">
+                <input type="number" id="p-price" placeholder="السعر (دينار)">
+                <textarea id="p-desc" placeholder="وصف المنتج وتفاصيله..."></textarea>
+                
+                <label style="font-size:13px; font-weight:bold;">القسم:</label>
+                <select id="p-cat-select">
+                    <option value="general">عام</option>
+                </select>
+
+                <label style="font-size:13px; font-weight:bold;">الصورة:</label>
+                <input type="file" id="p-img">
+
+                <button class="action-btn" onclick="uploadProduct()">نشر المنتج الآن</button>
+                <div id="prod-status" class="status"></div>
+
+                <hr style="margin: 20px 0; border: 0; border-top: 1px solid #eee;">
+                <h4 style="margin: 0 0 10px 0; color: #333;">إدارة المنتجات المنشورة</h4>
+                <div id="products-list-manage">
+                    </div>
+            </div>
+        </div>
+
+        <div id="tab-design" class="tab-content">
+            
+            <div id="design-menu">
+                <button class="design-option-btn" onclick="showDesignSection('banner-section')">
+                    <i class="fa-regular fa-images"></i>
+                    <span>إدارة البنرات (صور العروض)</span>
+                </button>
+                <button class="design-option-btn" onclick="showDesignSection('category-section')">
+                    <i class="fa-solid fa-layer-group"></i>
+                    <span>إدارة التصنيفات</span>
+                </button>
+            </div>
+
+            <div id="banner-section" style="display: none;">
+                <button onclick="showDesignSection('menu')" style="background:none; border:none; color:#555; font-weight:bold; margin-bottom:10px;"><i class="fa-solid fa-arrow-right"></i> رجوع</button>
+                <span class="section-label">🖼️ إدارة البنرات</span>
+                
+                <div id="banners-list-container" style="margin-bottom: 20px;">
+                    </div>
+
+                <div style="background:white; padding:15px; border-radius:15px; border:1px solid #ff9900;">
+                    <h4 style="margin-top:0;">إضافة بنر جديد</h4>
+                    <input type="text" id="banner-title" placeholder="عنوان العرض (اختياري)">
+                    <input type="file" id="banner-img">
+                    <button class="action-btn" onclick="uploadBanner()">رفع البنر</button>
+                    <div id="banner-status" class="status"></div>
+                </div>
+            </div>
+
+            <div id="category-section" style="display: none;">
+                <button onclick="showDesignSection('menu')" style="background:none; border:none; color:#555; font-weight:bold; margin-bottom:10px;"><i class="fa-solid fa-arrow-right"></i> رجوع</button>
+                <span class="section-label">📂 إدارة التصنيفات</span>
+                
+                <div style="background:white; padding:15px; border-radius:15px; margin-bottom: 20px;">
+                    <input type="text" id="cat-name-new" placeholder="اسم التصنيف (مثال: ساعات)">
+                    <input type="file" id="cat-img-new">
+                    <button class="action-btn" onclick="uploadCategory()">إنشاء التصنيف</button>
+                    <div id="cat-status" class="status"></div>
+                </div>
+
+                <span class="section-label" style="font-size: 14px;">التصنيفات الحالية</span>
+                <div id="categories-list-manage">
+                    </div>
+            </div>
+
+        </div>
+
+        <div id="tab-merchants" class="tab-content">
+            <span class="section-label">💎 إدارة التجار والخصومات</span>
+            <div style="background:white; padding:20px; border-radius:15px; box-shadow:0 2px 8px rgba(0,0,0,0.05); margin-bottom: 20px;">
+                <h4 style="margin-top:0; color:#ff9900;">نسبة الخصم العامة</h4>
+                <p style="font-size:12px; color:#777;">هذه النسبة ستطبق على جميع التجار المسجلين في القائمة أدناه.</p>
+                <div style="display:flex; gap:10px; align-items:center;">
+                    <input type="number" id="global-discount" placeholder="مثال: 10" style="margin:0;">
+                    <span style="font-weight:bold;">%</span>
+                    <button class="action-btn" onclick="saveDiscount()" style="width:auto; padding:10px 20px; margin:0;">حفظ</button>
+                </div>
+                <div id="discount-status" class="status"></div>
+            </div>
+
+            <div style="background:white; padding:20px; border-radius:15px; box-shadow:0 2px 8px rgba(0,0,0,0.05);">
+                <h4 style="margin-top:0;">إضافة تاجر جديد</h4>
+                <input type="text" id="merchant-name" placeholder="اسم التاجر">
+                <input type="email" id="merchant-email" placeholder="البريد الإلكتروني للتاجر">
+                <button class="action-btn" onclick="addMerchant()">إضافة للقائمة</button>
+                
+                <hr style="margin: 20px 0; border: 0; border-top: 1px solid #eee;">
+                <h4 style="margin: 0 0 10px 0;">قائمة التجار</h4>
+                <div id="merchants-list"></div>
+            </div>
+        </div>
+
+        <div id="tab-settings" class="tab-content">
+            <span class="section-label">⚙️ إعدادات المتجر</span>
+            <div style="background:white; padding:20px; border-radius:15px; box-shadow:0 2px 8px rgba(0,0,0,0.05);">
+                <label>اسم المتجر:</label>
+                <input type="text" id="store-name-input" placeholder="اكتب اسم المتجر هنا">
+                
+                <label>رقم خدمة العملاء (واتساب):</label>
+                <input type="number" id="whatsapp-input" placeholder="964xxxxxxxxx">
+                
+                <button class="action-btn" onclick="saveSettings()">حفظ التغييرات</button>
+                <div id="settings-status" class="status"></div>
+            </div>
+        </div>
+
+    </div>
+
+    <nav class="bottom-nav">
+        <button class="nav-btn active" onclick="switchTab('tab-orders', this)">
+            <i class="fa-solid fa-box-open"></i>
+            <span>الطلبات</span>
+        </button>
+        <button class="nav-btn" onclick="switchTab('tab-add-product', this)">
+            <i class="fa-solid fa-circle-plus"></i>
+            <span>إضافة منتج</span>
+        </button>
+        <button class="nav-btn" onclick="switchTab('tab-merchants', this)">
+            <i class="fa-solid fa-users-gear"></i>
+            <span>التجار</span>
+        </button>
+        <button class="nav-btn" onclick="switchTab('tab-design', this)">
+            <i class="fa-solid fa-paintbrush"></i>
+            <span>الواجهة</span>
+        </button>
+        <button class="nav-btn" onclick="switchTab('tab-settings', this)">
+            <i class="fa-solid fa-gear"></i>
+            <span>الإعدادات</span>
+        </button>
+    </nav>
+
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+
+    <script>
+        // إعدادات Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyDX0esBRiQ4MuyvWH_s2UZ2kJpA9GryDgE",
+            authDomain: "tttttt-48c2e.firebaseapp.com",
+            databaseURL: "https://tttttt-48c2e-default-rtdb.firebaseio.com",
+            projectId: "tttttt-48c2e",
+            storageBucket: "tttttt-48c2e.firebasestorage.app",
+            messagingSenderId: "982883301644",
+            appId: "1:982883301644:web:7b1676215cb4f0fe7c7129",
+            measurementId: "G-QLCYC16T20"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+        const cloudName = "dongmlmoj"; 
+        const uploadPreset = "app_upload"; 
+
+        // === نظام تسجيل الدخول ===
+        function checkLogin() {
+            const code = document.getElementById('login-input').value;
+            if(code === "1001") {
+                document.getElementById('login-screen').style.display = 'none';
+                document.getElementById('main-container').style.display = 'block';
+            } else {
+                document.getElementById('login-error').style.display = 'block';
+            }
+        }
+
+        // === دالة التبديل بين التبويبات ===
+        function switchTab(tabId, btnElement) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            btnElement.classList.add('active');
+            window.scrollTo(0,0);
+        }
+
+        // === التنقل داخل قسم الواجهة ===
+        function showDesignSection(sectionId) {
+            document.getElementById('design-menu').style.display = 'none';
+            document.getElementById('banner-section').style.display = 'none';
+            document.getElementById('category-section').style.display = 'none';
+
+            if(sectionId === 'menu') {
+                document.getElementById('design-menu').style.display = 'block';
+            } else {
+                document.getElementById(sectionId).style.display = 'block';
+            }
+        }
+
+        // === 1. جلب الطلبات ===
+        db.ref('orders').on('value', (snapshot) => {
+            const list = document.getElementById('orders-list');
+            list.innerHTML = "";
+            const data = snapshot.val();
+            if(!data) { list.innerHTML = "<p style='text-align:center; padding:20px;'>لا توجد طلبات جديدة</p>"; return; }
+            
+            Object.keys(data).reverse().forEach(key => {
+                const o = data[key];
+                const date = new Date(o.timestamp).toLocaleString('ar-EG');
+                let itemsHtml = "";
+                if(o.items) { o.items.forEach(i => itemsHtml += `<li>${i.title}</li>`); }
+                
+                // تمييز طلب التاجر
+                const merchantBadge = o.isMerchantOrder ? '<span style="background:#e67e22; color:white; padding:2px 8px; border-radius:10px; font-size:10px;">تاجر</span>' : '';
+
+                list.innerHTML += `
+                <div class="order-item">
+                    <div class="order-header">
+                        <span>👤 ${o.customerName} ${merchantBadge}</span>
+                        <span style="font-size:12px; color:#999;">${date}</span>
+                    </div>
+                    <div class="order-details">
+                        <p>📞 <a href="tel:${o.phone}" style="color:#ff9900; text-decoration:none;">${o.phone}</a></p>
+                        <p>📍 ${o.address}</p>
+                        <p style="margin-top:5px; font-weight:bold;">🛒 المنتجات:</p>
+                        <ul style="margin:5px 20px 10px;">${itemsHtml}</ul>
+                        <p style="font-weight:bold; color:#27ae60; font-size:16px;">💰 المجموع: ${o.total}</p>
+                    </div>
+                    <button class="delete-btn" onclick="deleteOrder('${key}')"><i class="fa-solid fa-trash"></i> حذف</button>
+                    <div style="clear:both;"></div>
+                </div>`;
+            });
+        });
+
+        function deleteOrder(key) {
+            if(confirm("حذف الطلب؟")) db.ref('orders').child(key).remove();
+        }
+
+        // === 2. إدارة البنرات (إظهار وحذف) ===
+        db.ref('banners').on('value', snapshot => {
+            const list = document.getElementById('banners-list-container');
+            list.innerHTML = "";
+            const data = snapshot.val();
+            
+            if(data) {
+                Object.keys(data).forEach(key => {
+                    const b = data[key];
+                    list.innerHTML += `
+                    <div class="banner-list-item">
+                        <div style="display:flex; align-items:center; gap:10px;">
+                            <img src="${b.image}" class="banner-preview">
+                            <span style="font-size:12px;">${b.title || 'بدون عنوان'}</span>
+                        </div>
+                        <button class="delete-btn" onclick="deleteBanner('${key}')">X</button>
+                    </div>`;
+                });
+            } else {
+                list.innerHTML = "<p style='font-size:12px; color:#999; text-align:center;'>لا توجد بنرات حالياً</p>";
+            }
+        });
+
+        async function uploadBanner() {
+            const title = document.getElementById('banner-title').value;
+            const fileInput = document.getElementById('banner-img');
+            if(fileInput.files.length === 0) return alert("اختر صورة");
+
+            document.getElementById('banner-status').innerText = "جاري الرفع...";
+            const imgUrl = await uploadToCloudinary(fileInput.files[0]);
+            if(imgUrl) {
+                db.ref('banners').push({ title: title, image: imgUrl });
+                document.getElementById('banner-status').innerText = "✅ تم";
+                document.getElementById('banner-status').style.color = "green";
+                fileInput.value = ""; document.getElementById('banner-title').value = "";
+            }
+        }
+
+        function deleteBanner(key) {
+            if(confirm("حذف هذا البنر؟")) db.ref('banners').child(key).remove();
+        }
+
+        // === 3. إدارة التصنيفات والمنتجات ===
+        
+        // جلب التصنيفات
+        db.ref('categories').on('value', snapshot => {
+            const select = document.getElementById('p-cat-select');
+            const listManage = document.getElementById('categories-list-manage');
+            
+            select.innerHTML = '<option value="general">عام</option>'; 
+            listManage.innerHTML = ""; 
+
+            const data = snapshot.val();
+            if(data) {
+                Object.keys(data).forEach(key => {
+                    const cat = data[key];
+                    select.innerHTML += `<option value="${cat.id}">${cat.name}</option>`;
+                    listManage.innerHTML += `
+                    <div class="banner-list-item">
+                        <div style="display:flex; align-items:center; gap:10px;">
+                            <img src="${cat.image}" class="banner-preview" style="border-radius:50%;">
+                            <span style="font-size:12px;">${cat.name}</span>
+                        </div>
+                        <button class="delete-btn" onclick="deleteCategory('${key}')">X</button>
+                    </div>`;
+                });
+            } else {
+                listManage.innerHTML = "<p style='font-size:12px; color:#999; text-align:center;'>لا توجد تصنيفات</p>";
+            }
+        });
+
+        async function uploadCategory() {
+            const name = document.getElementById('cat-name-new').value;
+            const fileInput = document.getElementById('cat-img-new');
+            if(!name || fileInput.files.length === 0) return alert("البيانات ناقصة");
+
+            document.getElementById('cat-status').innerText = "جاري...";
+            const imgUrl = await uploadToCloudinary(fileInput.files[0]);
+            if(imgUrl) {
+                const catId = name.replace(/\s+/g, '_'); 
+                db.ref('categories').push({ name: name, image: imgUrl, id: catId });
+                document.getElementById('cat-status').innerText = "✅ تم";
+                fileInput.value = ""; document.getElementById('cat-name-new').value = "";
+            }
+        }
+
+        function deleteCategory(key) {
+            if(confirm("حذف هذا التصنيف؟")) db.ref('categories').child(key).remove();
+        }
+
+        // جلب المنتجات
+        db.ref('products').on('value', snapshot => {
+            const list = document.getElementById('products-list-manage');
+            list.innerHTML = "";
+            const data = snapshot.val();
+            if(data) {
+                Object.keys(data).reverse().forEach(key => {
+                    const p = data[key];
+                    list.innerHTML += `
+                    <div class="banner-list-item">
+                        <div style="display:flex; align-items:center; gap:10px;">
+                            <img src="${p.image}" class="banner-preview">
+                            <div style="font-size:12px;">
+                                <div>${p.title}</div>
+                                <div style="color:#27ae60; font-weight:bold;">${p.price}</div>
+                            </div>
+                        </div>
+                        <button class="delete-btn" onclick="deleteProduct('${key}')">X</button>
+                    </div>`;
+                });
+            } else {
+                list.innerHTML = "<p style='font-size:12px; color:#999; text-align:center;'>لا توجد منتجات</p>";
+            }
+        });
+
+        async function uploadProduct() {
+            const name = document.getElementById('p-name').value;
+            const price = document.getElementById('p-price').value;
+            const desc = document.getElementById('p-desc').value;
+            const cat = document.getElementById('p-cat-select').value;
+            const fileInput = document.getElementById('p-img');
+            if(!name || !price || fileInput.files.length === 0) return alert("البيانات ناقصة");
+
+            document.getElementById('prod-status').innerText = "جاري الرفع...";
+            const imgUrl = await uploadToCloudinary(fileInput.files[0]);
+            if(imgUrl) {
+                await db.ref('products').push({
+                    title: name, price: Number(price), description: desc, category: cat,
+                    image: imgUrl, date: firebase.database.ServerValue.TIMESTAMP
+                });
+                document.getElementById('prod-status').innerText = "✅ تم النشر";
+                document.getElementById('p-name').value = ""; document.getElementById('p-price').value = "";
+                document.getElementById('p-desc').value = ""; document.getElementById('p-img').value = "";
+            }
+        }
+
+        function deleteProduct(key) {
+            if(confirm("حذف هذا المنتج؟")) db.ref('products').child(key).remove();
+        }
+
+        // === 4. إدارة التجار ===
+        function saveDiscount() {
+            const discount = document.getElementById('global-discount').value;
+            db.ref('settings/merchantDiscount').set(parseInt(discount)).then(() => {
+                document.getElementById('discount-status').innerText = "✅ تم حفظ الخصم";
+                document.getElementById('discount-status').style.color = "green";
+                setTimeout(() => document.getElementById('discount-status').innerText = "", 2000);
+            });
+        }
+
+        function addMerchant() {
+            const name = document.getElementById('merchant-name').value;
+            const email = document.getElementById('merchant-email').value;
+            if(!name || !email) return alert("أدخل الاسم والبريد");
+
+            db.ref('merchants').push({ name: name, email: email.toLowerCase() });
+            document.getElementById('merchant-name').value = "";
+            document.getElementById('merchant-email').value = "";
+        }
+
+        db.ref('merchants').on('value', snapshot => {
+            const list = document.getElementById('merchants-list');
+            list.innerHTML = "";
+            const data = snapshot.val();
+            if(data) {
+                Object.keys(data).forEach(key => {
+                    const m = data[key];
+                    list.innerHTML += `
+                    <div class="banner-list-item">
+                        <div>
+                            <b>${m.name}</b> <br> <span style="font-size:12px; color:#777;">${m.email}</span>
+                        </div>
+                        <button class="delete-btn" onclick="db.ref('merchants/${key}').remove()">حذف</button>
+                    </div>`;
+                });
+            } else {
+                list.innerHTML = "<p style='text-align:center; color:#999; font-size:12px;'>لا يوجد تجار مسجلين</p>";
+            }
+        });
+
+        // جلب الخصم الحالي
+        db.ref('settings/merchantDiscount').on('value', snap => {
+            if(snap.exists()) document.getElementById('global-discount').value = snap.val();
+        });
+
+        // === 5. الإعدادات ===
+        function saveSettings() {
+            const name = document.getElementById('store-name-input').value;
+            const phone = document.getElementById('whatsapp-input').value;
+            if(!name || !phone) return alert("أكمل البيانات");
+            
+            db.ref('settings').update({ storeName: name, whatsapp: phone })
+            .then(() => {
+                document.getElementById('settings-status').innerText = "✅ تم الحفظ";
+                document.getElementById('settings-status').style.color = "green";
+            });
+        }
+        
+        db.ref('settings').on('value', snapshot => {
+            const s = snapshot.val();
+            if(s) {
+                if(s.storeName) document.getElementById('store-name-input').value = s.storeName;
+                if(s.whatsapp) document.getElementById('whatsapp-input').value = s.whatsapp;
+            }
+        });
+
+        // وظيفة الرفع
+        async function uploadToCloudinary(file) {
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('upload_preset', uploadPreset);
+            try {
+                const res = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, { method: 'POST', body: formData });
+                const data = await res.json();
+                return data.secure_url;
+            } catch(e) {
+                alert("فشل الرفع");
+                return null;
+            }
+        }
+    </script>
+</body>
+</html>

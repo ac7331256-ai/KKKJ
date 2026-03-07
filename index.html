@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>متجرنا</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#ff9900">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div id="install-banner" class="install-banner">
+        <div style="display:flex; gap:10px; align-items:center;">
+            <i class="fa-brands fa-android"></i> <span>تثبيت التطبيق</span>
+        </div>
+        <button id="install-btn">تثبيت</button>
+        <button id="close-install"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+
+    <div id="splash-screen">
+        <div class="splash-content">
+            <h1 id="splash-title"><span style="color:#fff">F</span>YNTRA</h1>
+            <div class="loader"></div>
+        </div>
+    </div>
+    
+    <div id="toast-notification">تمت العملية بنجاح!</div>
+
+    <div class="sidebar-overlay" id="sidebar-overlay"></div>
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h3>القائمة</h3>
+            <button id="close-sidebar"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <ul class="sidebar-links">
+            <li><a href="#" onclick="showPage('profile-page'); toggleSidebar()"><i class="fa-solid fa-user"></i> حسابي</a></li>
+            <li><a href="#" onclick="logoutUser(); toggleSidebar()" id="sidebar-logout-btn" style="display:none; color:red;"><i class="fa-solid fa-right-from-bracket"></i> تسجيل خروج</a></li>
+        </ul>
+    </div>
+
+    <div id="home-page" class="page active-page">
+        <header class="sticky-header">
+            <div class="top-nav">
+                <div class="nav-icons">
+                    <button class="icon-btn" id="menu-btn"><i class="fa-solid fa-bars"></i></button>
+                    <div class="cart-wrapper" onclick="showPage('cart-page')">
+                        <button class="icon-btn"><i class="fa-solid fa-cart-shopping"></i></button>
+                        <span id="cart-count">0</span>
+                    </div>
+                </div>
+                <div class="logo animated-store-name" id="store-name-display"><span class="store-text">F</span>YNTRA</div>
+            </div>
+            <div class="search-container">
+                <div class="search-box">
+                    <input type="text" placeholder="ابحث عن منتج...">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                </div>
+            </div>
+        </header>
+
+        <div class="main-content">
+            <div class="slider-container">
+                <div class="slider-wrapper" id="dynamic-slider">
+                    </div>
+                <div class="promo-text">عروض مميزة</div>
+            </div>
+
+            <h3 class="section-title">تصفح الفئات</h3>
+            <div class="categories-scroll" id="dynamic-categories">
+                <div class="category-item" onclick="filterProducts('all')"><div class="cat-box active"><div class="square-icon"></div></div><span class="cat-name">الكل</span></div>
+            </div>
+
+            <div class="section-title"><span>أحدث المنتجات</span></div>
+            <div class="products-grid" id="products-container">
+                <div style="text-align:center; width:200%; padding:20px; color:#777;">جاري التحميل...</div>
+            </div>
+        </div>
+
+        <nav class="bottom-nav">
+            <div class="nav-item active" onclick="showPage('home-page')"><i class="fa-solid fa-house"></i><span>الرئيسية</span></div>
+            <div class="nav-item" onclick="showPage('cart-page')"><i class="fa-solid fa-bag-shopping"></i><span>السلة</span></div>
+            <div class="nav-item" onclick="showPage('profile-page')"><i class="fa-solid fa-user"></i><span>حسابي</span></div>
+        </nav>
+    </div>
+
+    <div id="product-page" class="page">
+        <div class="product-header">
+            <button class="back-btn" onclick="goBack()"><i class="fa-solid fa-arrow-right"></i></button>
+            <span class="header-title">تفاصيل المنتج</span>
+        </div>
+        <div class="product-view-scroll">
+            <div class="large-image-container"><img id="detail-img" src=""></div>
+            <div class="detail-content">
+                <h2 id="detail-title"></h2>
+                <div class="detail-price" id="detail-price"></div>
+                <div class="detail-desc"><p></p></div>
+            </div>
+        </div>
+        <div class="detail-footer">
+            <button class="add-to-cart-full" onclick="addToCartFromDetail()">إضافة للسلة <i class="fa-solid fa-cart-plus"></i></button>
+        </div>
+    </div>
+
+    <div id="cart-page" class="page">
+        <div class="product-header">
+            <button class="back-btn" onclick="showPage('home-page')"><i class="fa-solid fa-arrow-right"></i></button>
+            <span class="header-title">سلة المشتريات</span>
+            <button class="icon-btn" onclick="clearCart()"><i class="fa-regular fa-trash-can"></i></button>
+        </div>
+        <div class="cart-items-container" id="cart-items-list"></div>
+        <div class="cart-footer">
+            <div style="display:flex; justify-content:space-between; margin-bottom:10px;"><span>المجموع:</span><span id="cart-total-price">0 د.ع</span></div>
+            <button class="checkout-btn" onclick="showPage('checkout-page')">إتمام الشراء</button>
+        </div>
+    </div>
+
+    <div id="checkout-page" class="page">
+        <div class="product-header">
+            <button class="back-btn" onclick="showPage('cart-page')"><i class="fa-solid fa-arrow-right"></i></button>
+            <span class="header-title">معلومات التوصيل</span>
+        </div>
+        <div style="padding:20px;">
+            <input id="order-name" type="text" placeholder="الاسم الكامل" class="checkout-input">
+            <input id="order-phone" type="tel" placeholder="رقم الهاتف" class="checkout-input">
+            <textarea id="order-address" placeholder="العنوان بالتفصيل" class="checkout-input"></textarea>
+            <button class="checkout-btn" onclick="processCheckout()">تأكيد الطلب</button>
+        </div>
+    </div>
+
+    <div id="profile-page" class="page">
+        <div class="product-header">
+            <button class="back-btn" onclick="showPage('home-page')"><i class="fa-solid fa-arrow-right"></i></button>
+            <span class="header-title">الملف الشخصي</span>
+        </div>
+        <div class="profile-content">
+            <div class="profile-card">
+                <img src="https://via.placeholder.com/80" id="profile-img" class="profile-img">
+                <h3 id="profile-name">ضيف</h3>
+                <p id="profile-email">لم يتم تسجيل الدخول</p>
+            </div>
+            <div class="profile-menu">
+                <div class="menu-item" onclick="openWhatsAppSupport()"><div class="icon-box" style="background:#e0f2f1; color:#25d366"><i class="fa-brands fa-whatsapp"></i></div><span>خدمة العملاء</span></div>
+                <div class="menu-item" id="login-menu-item" onclick="showPage('login-page')"><div class="icon-box" style="background:#fff3e0; color:#ff9800"><i class="fa-solid fa-user-plus"></i></div><span>تسجيل الدخول</span></div>
+                <div class="menu-item" id="logout-menu-item" onclick="logoutUser()" style="display:none;"><div class="icon-box" style="background:#ffebee; color:#d32f2f"><i class="fa-solid fa-right-from-bracket"></i></div><span>تسجيل خروج</span></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="login-page" class="page">
+        <div class="login-container">
+            <h1 style="color:#ff9900; margin-bottom: 20px;">مرحباً بك</h1>
+            
+            <div id="email-login-form" style="width:100%; display:flex; flex-direction:column; align-items:center;">
+                <input type="email" id="login-email" class="login-input" placeholder="البريد الإلكتروني">
+                <input type="password" id="login-pass" class="login-input" placeholder="كلمة المرور">
+                <button onclick="handleEmailLogin()" class="login-btn">دخول</button>
+                <div class="toggle-auth" onclick="toggleAuthMode('register')">ليس لديك حساب؟ إنشاء حساب جديد</div>
+            </div>
+
+            <div id="email-register-form" style="width:100%; display:none; flex-direction:column; align-items:center;">
+                <input type="text" id="reg-name" class="login-input" placeholder="الاسم الكامل">
+                <input type="email" id="reg-email" class="login-input" placeholder="البريد الإلكتروني">
+                <input type="password" id="reg-pass" class="login-input" placeholder="كلمة المرور">
+                <button onclick="handleEmailRegister()" class="login-btn">إنشاء حساب</button>
+                <div class="toggle-auth" onclick="toggleAuthMode('login')">لديك حساب بالفعل؟ تسجيل دخول</div>
+            </div>
+
+            <div style="width:100%; max-width:300px; display:flex; align-items:center; margin: 20px 0;">
+                <div style="flex:1; height:1px; background:#ddd;"></div>
+                <span style="padding:0 10px; color:#999; font-size:12px;">أو</span>
+                <div style="flex:1; height:1px; background:#ddd;"></div>
+            </div>
+
+            <button onclick="handleGoogleLogin()" class="google-btn">
+                <i class="fa-brands fa-google" style="color:#DB4437;"></i> الدخول عبر Google
+            </button>
+            <button onclick="skipLogin()" class="skip-btn">دخول كزائر (معاينة)</button>
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
