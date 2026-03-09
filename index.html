@@ -9,15 +9,31 @@
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="style.css">
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
+      import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-analytics.js";
+      const firebaseConfig = {
+        apiKey: "AIzaSyAVq_zs2bnekrs37RvndFKFIN24VCNiM58",
+        authDomain: "klkjj-8c3be.firebaseapp.com",
+        projectId: "klkjj-8c3be",
+        storageBucket: "klkjj-8c3be.firebasestorage.app",
+        messagingSenderId: "445092589089",
+        appId: "1:445092589089:web:189df04b26da230126fd60",
+        measurementId: "G-VQXMR7VLZE"
+      };
+      const app = initializeApp(firebaseConfig);
+      const analytics = getAnalytics(app);
+    </script>
 </head>
 <body>
 
     <div id="install-banner" class="install-banner">
         <div style="display:flex; gap:10px; align-items:center;">
-            <i class="fa-brands fa-android"></i> <span>تثبيت التطبيق</span>
+            <img src="icon.png" alt="icon" style="width:30px; height:30px; border-radius:50%; object-fit:cover;">
+            <span>ثبت التطبيق لسلاسه افضل</span>
         </div>
         <button id="install-btn">تثبيت</button>
-        <button id="close-install"><i class="fa-solid fa-xmark"></i></button>
+        <button id="close-install">تخطي</button>
     </div>
 
     <div id="splash-screen">
