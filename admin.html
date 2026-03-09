@@ -9,7 +9,6 @@
     <style>
         body { font-family: 'Cairo', sans-serif; background: #f8f9fa; padding: 0; margin: 0; padding-bottom: 80px; }
         
-        /* شاشة القفل */
         #login-screen {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: #2f3542; z-index: 9999; display: flex; flex-direction: column;
@@ -63,14 +62,12 @@
             border-right: 4px solid #ff9900; padding-right: 10px; background: #fff; padding: 10px; border-radius: 5px;
         }
 
-        /* تنسيق قائمة البنرات والمنتجات */
         .banner-list-item {
             display: flex; justify-content: space-between; align-items: center;
             background: #fff; padding: 10px; margin-bottom: 10px; border-radius: 8px; border: 1px solid #eee;
         }
         .banner-preview { width: 50px; height: 50px; object-fit: cover; border-radius: 4px; }
         
-        /* أزرار خيارات الواجهة */
         .design-option-btn {
             background: white; border: 1px solid #eee; padding: 20px; text-align: center;
             border-radius: 15px; cursor: pointer; transition: 0.2s; margin-bottom: 15px;
@@ -243,24 +240,57 @@
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 
     <script>
-        // إعدادات Firebase
         const firebaseConfig = {
-            apiKey: "AIzaSyDX0esBRiQ4MuyvWH_s2UZ2kJpA9GryDgE",
-            authDomain: "tttttt-48c2e.firebaseapp.com",
-            databaseURL: "https://tttttt-48c2e-default-rtdb.firebaseio.com",
-            projectId: "tttttt-48c2e",
-            storageBucket: "tttttt-48c2e.firebasestorage.app",
-            messagingSenderId: "982883301644",
-            appId: "1:982883301644:web:7b1676215cb4f0fe7c7129",
-            measurementId: "G-QLCYC16T20"
+            apiKey: "AIzaSyAVq_zs2bnekrs37RvndFKFIN24VCNiM58",
+            authDomain: "klkjj-8c3be.firebaseapp.com",
+            projectId: "klkjj-8c3be",
+            storageBucket: "klkjj-8c3be.firebasestorage.app",
+            messagingSenderId: "445092589089",
+            appId: "1:445092589089:web:189df04b26da230126fd60",
+            measurementId: "G-VQXMR7VLZE"
         };
 
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
-        const cloudName = "dongmlmoj"; 
-        const uploadPreset = "app_upload"; 
 
-        // === نظام تسجيل الدخول ===
+        function compressAndConvertToBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = event => {
+                    const img = new Image();
+                    img.src = event.target.result;
+                    img.onload = () => {
+                        const canvas = document.createElement('canvas');
+                        const MAX_WIDTH = 800;
+                        const MAX_HEIGHT = 800;
+                        let width = img.width;
+                        let height = img.height;
+
+                        if (width > height) {
+                            if (width > MAX_WIDTH) {
+                                height *= MAX_WIDTH / width;
+                                width = MAX_WIDTH;
+                            }
+                        } else {
+                            if (height > MAX_HEIGHT) {
+                                width *= MAX_HEIGHT / height;
+                                height = MAX_HEIGHT;
+                            }
+                        }
+                        canvas.width = width;
+                        canvas.height = height;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, width, height);
+                        const dataUrl = canvas.toDataURL('image/jpeg', 0.6); 
+                        resolve(dataUrl);
+                    };
+                    img.onerror = error => reject(error);
+                };
+                reader.onerror = error => reject(error);
+            });
+        }
+
         function checkLogin() {
             const code = document.getElementById('login-input').value;
             if(code === "1001") {
@@ -271,7 +301,6 @@
             }
         }
 
-        // === دالة التبديل بين التبويبات ===
         function switchTab(tabId, btnElement) {
             document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
             document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
@@ -280,7 +309,6 @@
             window.scrollTo(0,0);
         }
 
-        // === التنقل داخل قسم الواجهة ===
         function showDesignSection(sectionId) {
             document.getElementById('design-menu').style.display = 'none';
             document.getElementById('banner-section').style.display = 'none';
@@ -293,7 +321,6 @@
             }
         }
 
-        // === 1. جلب الطلبات ===
         db.ref('orders').on('value', (snapshot) => {
             const list = document.getElementById('orders-list');
             list.innerHTML = "";
@@ -306,7 +333,6 @@
                 let itemsHtml = "";
                 if(o.items) { o.items.forEach(i => itemsHtml += `<li>${i.title}</li>`); }
                 
-                // تمييز طلب التاجر
                 const merchantBadge = o.isMerchantOrder ? '<span style="background:#e67e22; color:white; padding:2px 8px; border-radius:10px; font-size:10px;">تاجر</span>' : '';
 
                 list.innerHTML += `
@@ -332,7 +358,6 @@
             if(confirm("حذف الطلب؟")) db.ref('orders').child(key).remove();
         }
 
-        // === 2. إدارة البنرات (إظهار وحذف) ===
         db.ref('banners').on('value', snapshot => {
             const list = document.getElementById('banners-list-container');
             list.innerHTML = "";
@@ -361,7 +386,7 @@
             if(fileInput.files.length === 0) return alert("اختر صورة");
 
             document.getElementById('banner-status').innerText = "جاري الرفع...";
-            const imgUrl = await uploadToCloudinary(fileInput.files[0]);
+            const imgUrl = await compressAndConvertToBase64(fileInput.files[0]);
             if(imgUrl) {
                 db.ref('banners').push({ title: title, image: imgUrl });
                 document.getElementById('banner-status').innerText = "✅ تم";
@@ -374,9 +399,6 @@
             if(confirm("حذف هذا البنر؟")) db.ref('banners').child(key).remove();
         }
 
-        // === 3. إدارة التصنيفات والمنتجات ===
-        
-        // جلب التصنيفات
         db.ref('categories').on('value', snapshot => {
             const select = document.getElementById('p-cat-select');
             const listManage = document.getElementById('categories-list-manage');
@@ -409,7 +431,7 @@
             if(!name || fileInput.files.length === 0) return alert("البيانات ناقصة");
 
             document.getElementById('cat-status').innerText = "جاري...";
-            const imgUrl = await uploadToCloudinary(fileInput.files[0]);
+            const imgUrl = await compressAndConvertToBase64(fileInput.files[0]);
             if(imgUrl) {
                 const catId = name.replace(/\s+/g, '_'); 
                 db.ref('categories').push({ name: name, image: imgUrl, id: catId });
@@ -422,7 +444,6 @@
             if(confirm("حذف هذا التصنيف؟")) db.ref('categories').child(key).remove();
         }
 
-        // جلب المنتجات
         db.ref('products').on('value', snapshot => {
             const list = document.getElementById('products-list-manage');
             list.innerHTML = "";
@@ -456,7 +477,7 @@
             if(!name || !price || fileInput.files.length === 0) return alert("البيانات ناقصة");
 
             document.getElementById('prod-status').innerText = "جاري الرفع...";
-            const imgUrl = await uploadToCloudinary(fileInput.files[0]);
+            const imgUrl = await compressAndConvertToBase64(fileInput.files[0]);
             if(imgUrl) {
                 await db.ref('products').push({
                     title: name, price: Number(price), description: desc, category: cat,
@@ -472,7 +493,6 @@
             if(confirm("حذف هذا المنتج؟")) db.ref('products').child(key).remove();
         }
 
-        // === 4. إدارة التجار ===
         function saveDiscount() {
             const discount = document.getElementById('global-discount').value;
             db.ref('settings/merchantDiscount').set(parseInt(discount)).then(() => {
@@ -512,12 +532,10 @@
             }
         });
 
-        // جلب الخصم الحالي
         db.ref('settings/merchantDiscount').on('value', snap => {
             if(snap.exists()) document.getElementById('global-discount').value = snap.val();
         });
 
-        // === 5. الإعدادات ===
         function saveSettings() {
             const name = document.getElementById('store-name-input').value;
             const phone = document.getElementById('whatsapp-input').value;
@@ -537,21 +555,6 @@
                 if(s.whatsapp) document.getElementById('whatsapp-input').value = s.whatsapp;
             }
         });
-
-        // وظيفة الرفع
-        async function uploadToCloudinary(file) {
-            const formData = new FormData();
-            formData.append('file', file);
-            formData.append('upload_preset', uploadPreset);
-            try {
-                const res = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, { method: 'POST', body: formData });
-                const data = await res.json();
-                return data.secure_url;
-            } catch(e) {
-                alert("فشل الرفع");
-                return null;
-            }
-        }
     </script>
 </body>
 </html>
