@@ -1,0 +1,20 @@
+{
+  "name": "متجرنا",
+  "short_name": "FYNTRA",
+  "start_url": "index.html",
+  "display": "standalone",
+  "background_color": "#fffbf5",
+  "theme_color": "#ff9900",
+  "icons": [
+    {
+      "src": "icon.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icon.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
