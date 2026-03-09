@@ -29,7 +29,7 @@
 
     <div id="install-banner" class="install-banner">
         <div style="display:flex; gap:10px; align-items:center;">
-            <img src="icon.png" alt="icon" style="width:30px; height:30px; border-radius:50%; object-fit:cover;">
+            <img src="icon-192x192.png" alt="icon" style="width:30px; height:30px; border-radius:50%; object-fit:cover;">
             <span>ثبت التطبيق لسلاسه افضل</span>
         </div>
         <button id="install-btn">تثبيت</button>
@@ -201,5 +201,16 @@
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
     <script src="script.js"></script>
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('sw.js').then(reg => {
+            console.log('Service Worker Registered!', reg);
+          }).catch(err => {
+            console.log('Service Worker Failed!', err);
+          });
+        });
+      }
+    </script>
 </body>
 </html>
