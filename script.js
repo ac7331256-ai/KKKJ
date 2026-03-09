@@ -1,4 +1,4 @@
-// متغيرات عامة
+// ملف script.js
 let cart = [];
 let user = null;
 let deferredPrompt;
@@ -8,14 +8,13 @@ let isMerchant = false;
 let merchantDiscount = 0;
 
 const firebaseConfig = {
-    apiKey: "AIzaSyDX0esBRiQ4MuyvWH_s2UZ2kJpA9GryDgE",
-    authDomain: "tttttt-48c2e.firebaseapp.com",
-    databaseURL: "https://tttttt-48c2e-default-rtdb.firebaseio.com",
-    projectId: "tttttt-48c2e",
-    storageBucket: "tttttt-48c2e.firebasestorage.app",
-    messagingSenderId: "982883301644",
-    appId: "1:982883301644:web:7b1676215cb4f0fe7c7129",
-    measurementId: "G-QLCYC16T20"
+    apiKey: "AIzaSyAVq_zs2bnekrs37RvndFKFIN24VCNiM58",
+    authDomain: "klkjj-8c3be.firebaseapp.com",
+    projectId: "klkjj-8c3be",
+    storageBucket: "klkjj-8c3be.firebasestorage.app",
+    messagingSenderId: "445092589089",
+    appId: "1:445092589089:web:189df04b26da230126fd60",
+    measurementId: "G-VQXMR7VLZE"
 };
 
 firebase.initializeApp(firebaseConfig);
@@ -24,7 +23,6 @@ const auth = firebase.auth();
 
 document.addEventListener('DOMContentLoaded', () => {
     
-    // التحقق من حالة تسجيل الدخول
     auth.onAuthStateChanged(firebaseUser => {
         if (firebaseUser) {
             user = { 
@@ -41,7 +39,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // 1. جلب إعدادات المتجر ونسبة الخصم
     db.ref('settings').on('value', snapshot => {
         const s = snapshot.val();
         if(s) {
@@ -55,12 +52,11 @@ document.addEventListener('DOMContentLoaded', () => {
             if(s.whatsapp) adminPhoneNumber = s.whatsapp;
             if(s.merchantDiscount) {
                 merchantDiscount = parseInt(s.merchantDiscount) || 0;
-                renderProducts(); // إعادة رسم المنتجات عند تغير الخصم
+                renderProducts(); 
             }
         }
     });
 
-    // 2. جلب الفئات
     db.ref('categories').on('value', snapshot => {
         const catContainer = document.getElementById('dynamic-categories');
         const data = snapshot.val();
@@ -76,7 +72,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // 3. السلايدر
     db.ref('banners').on('value', snapshot => {
         const slider = document.getElementById('dynamic-slider');
         const data = snapshot.val();
@@ -98,13 +93,11 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // إخفاء شاشة التحميل
     setTimeout(() => {
         const splash = document.getElementById('splash-screen');
         splash.style.opacity = '0';
         setTimeout(() => splash.style.display = 'none', 500);
         
-        // التوجيه: إذا لم يسجل الدخول، اذهب لصفحة الدخول
         auth.onAuthStateChanged(u => {
             if(!u && !sessionStorage.getItem('guestMode')) {
                 showPage('login-page');
@@ -112,14 +105,12 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }, 2000);
 
-    // PWA Logic
     window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); deferredPrompt = e; document.getElementById('install-banner').style.display = 'flex'; });
     document.getElementById('install-btn').addEventListener('click', async () => {
         if(deferredPrompt) { deferredPrompt.prompt(); deferredPrompt = null; document.getElementById('install-banner').style.display = 'none'; }
     });
     document.getElementById('close-install').addEventListener('click', () => document.getElementById('install-banner').style.display = 'none');
     
-    // جلب المنتجات (تخزينها في متغير global لإعادة استخدامها)
     window.allProductsData = {};
     db.ref('products').on('value', (snapshot) => {
         window.allProductsData = snapshot.val() || {};
@@ -127,7 +118,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 
-// دالة رسم المنتجات (منفصلة لكي يتم استدعاؤها عند تغير حالة التاجر)
 function renderProducts() {
     const container = document.getElementById('products-container');
     container.innerHTML = "";
@@ -142,7 +132,6 @@ function renderProducts() {
         const safeTitle = prod.title ? prod.title.replace(/'/g, "&apos;") : "";
         const safeDesc = prod.description ? prod.description.replace(/'/g, "&apos;").replace(/\n/g, "<br>") : "";
         
-        // حساب السعر (للتاجر أو العادي)
         let finalPrice = prod.price;
         let priceHTML = `<span class="price">${Number(prod.price).toLocaleString()} د.ع</span>`;
         
@@ -170,7 +159,6 @@ function renderProducts() {
     });
 }
 
-// التحقق من التاجر
 function checkMerchantStatus(email) {
     if(!email) return;
     db.ref('merchants').once('value').then(snapshot => {
@@ -183,11 +171,10 @@ function checkMerchantStatus(email) {
                 }
             });
         }
-        renderProducts(); // إعادة رسم المنتجات بالأسعار الجديدة
+        renderProducts(); 
     });
 }
 
-// التنقل والصفحات
 window.showPage = function(pageId) {
     document.querySelectorAll('.page').forEach(page => page.classList.remove('active-page'));
     document.getElementById(pageId).classList.add('active-page');
@@ -199,11 +186,9 @@ window.showPage = function(pageId) {
 }
 window.goBack = function() { showPage('home-page'); }
 
-// التفاصيل والسلة (تم التعديل لاستقبال السعر النهائي)
 window.openProductPage = function(id, title, originalPrice, finalPrice, img, desc) {
     document.getElementById('detail-title').innerText = title;
     
-    // عرض السعر في التفاصيل
     const priceEl = document.getElementById('detail-price');
     if (originalPrice !== finalPrice) {
         priceEl.innerHTML = `<span style="color:#d32f2f; font-weight:bold; font-size:18px;">${Number(finalPrice).toLocaleString()} د.ع</span> <span style="text-decoration:line-through; color:#999; font-size:14px;">${Number(originalPrice).toLocaleString()}</span>`;
@@ -214,7 +199,6 @@ window.openProductPage = function(id, title, originalPrice, finalPrice, img, des
     document.getElementById('detail-img').src = img;
     document.querySelector('.detail-desc p').innerHTML = desc || "لا يوجد وصف";
     
-    // حفظ السعر الحالي لإضافته للسلة
     document.getElementById('detail-price').dataset.currentPrice = finalPrice;
     
     showPage('product-page');
@@ -248,7 +232,6 @@ function updateCartUI() {
 window.removeFromCart = function(index) { cart.splice(index, 1); updateCartUI(); }
 window.clearCart = function() { cart = []; updateCartUI(); }
 
-// إرسال الطلب
 window.processCheckout = function() {
     if(cart.length === 0) return showToast("السلة فارغة!");
     const name = document.getElementById('order-name').value;
@@ -265,7 +248,7 @@ window.processCheckout = function() {
         items: cart, 
         total: total.toLocaleString() + " د.ع", 
         timestamp: firebase.database.ServerValue.TIMESTAMP,
-        isMerchantOrder: isMerchant // علامة لمعرفة إذا كان الطلب من تاجر
+        isMerchantOrder: isMerchant
     };
 
     db.ref('orders').push(orderData).then(() => {
@@ -275,9 +258,6 @@ window.processCheckout = function() {
     });
 }
 
-// === نظام تسجيل الدخول الجديد ===
-
-// تبديل بين تسجيل الدخول وإنشاء حساب
 window.toggleAuthMode = function(mode) {
     if(mode === 'register') {
         document.getElementById('email-login-form').style.display = 'none';
@@ -288,7 +268,6 @@ window.toggleAuthMode = function(mode) {
     }
 }
 
-// تسجيل دخول بالإيميل
 window.handleEmailLogin = function() {
     const email = document.getElementById('login-email').value;
     const pass = document.getElementById('login-pass').value;
@@ -299,7 +278,6 @@ window.handleEmailLogin = function() {
         .catch(err => showToast("خطأ: " + err.message));
 }
 
-// إنشاء حساب جديد
 window.handleEmailRegister = function() {
     const name = document.getElementById('reg-name').value;
     const email = document.getElementById('reg-email').value;
@@ -315,7 +293,6 @@ window.handleEmailRegister = function() {
         .catch(err => showToast("خطأ: " + err.message));
 }
 
-// تسجيل دخول جوجل
 window.handleGoogleLogin = function() {
     const provider = new firebase.auth.GoogleAuthProvider();
     auth.signInWithPopup(provider)
@@ -323,13 +300,11 @@ window.handleGoogleLogin = function() {
         .catch(err => showToast("خطأ في الاتصال"));
 }
 
-// دخول كزائر
 window.skipLogin = function() {
     sessionStorage.setItem('guestMode', 'true');
     showPage('home-page');
 }
 
-// تسجيل خروج
 window.logoutUser = function() {
     auth.signOut().then(() => {
         user = null;
@@ -366,13 +341,12 @@ function showToast(msg) {
     toast.innerText = msg; toast.classList.add('show-toast');
     setTimeout(() => toast.classList.remove('show-toast'), 2000);
 }
-// القوائم
+
 window.toggleSidebar = function() { document.getElementById('sidebar').classList.toggle('active'); document.getElementById('sidebar-overlay').classList.toggle('active'); }
 document.getElementById('menu-btn').addEventListener('click', toggleSidebar);
 document.getElementById('close-sidebar').addEventListener('click', toggleSidebar);
 document.getElementById('sidebar-overlay').addEventListener('click', toggleSidebar);
 
-// الفلترة
 window.filterProducts = function(cat) {
     const cards = document.querySelectorAll('.product-card');
     document.querySelectorAll('.cat-box').forEach(b => b.classList.remove('active'));
